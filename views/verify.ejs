@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Vérification | Registre Terroir</title>
-    <link rel="stylesheet" href="/style.css" />
+    <link rel="stylesheet" href="<%= basePath %>/css/style.css" />
   </head>
   <body>
     <div class="container">
@@ -12,7 +12,7 @@
       <h2>Traçabilité Blockchain</h2>
       <p class="description">Scannez ou saisissez le numéro de lot pour vérifier l'origine du produit.</p>
 
-      <form method="post" action="/verifier">
+      <form method="post" action="<%= basePath %>/verifier">
         <div class="form-field">
           <label for="batchNumber">Numéro de Lot (TR-...) :</label>
           <input type="text" id="batchNumber" name="batchNumber" value="<%= typeof batchNumber !== 'undefined' ? batchNumber : '' %>" required />
@@ -54,7 +54,7 @@
       <% } %>
 
       <div class="links">
-        <a href="/">🏠 Retour à l'accueil</a>
+        <a href="<%= basePath %>/">🏠 Retour à l'accueil</a>
       </div>
     </div>
   </body>

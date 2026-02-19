@@ -9,19 +9,19 @@
     </div>
     <nav class="header-nav">
       <a
-        href="/"
+        href="<%= basePath %>/"
         class="nav-link <%= typeof page !== 'undefined' && page === 'home' ? 'active' : '' %>"
       >
         <span class="nav-icon">🗺️</span> Carte
       </a>
       <a
-        href="/explorer"
+        href="<%= basePath %>/explorer"
         class="nav-link <%= typeof page !== 'undefined' && page === 'explorer' ? 'active' : '' %>"
       >
         <span class="nav-icon">⛓️</span> Explorateur
       </a>
       <a
-        href="/about"
+        href="<%= basePath %>/about"
         class="nav-link <%= typeof page !== 'undefined' && page === 'about' ? 'active' : '' %>"
       >
         <span class="nav-icon">❓</span> À propos

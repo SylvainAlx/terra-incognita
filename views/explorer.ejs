@@ -4,8 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Explorateur Blockchain | Terra Incognita</title>
-    <link rel="stylesheet" href="/css/style.css" />
-    <link rel="stylesheet" href="/css/explorer.css" />
+    <link rel="stylesheet" href="<%= basePath %>/css/style.css" />
+    <link rel="stylesheet" href="<%= basePath %>/css/explorer.css" />
   </head>
   <body class="explorer-body">
     <%- include('partials/header') %>
@@ -103,8 +103,8 @@
 
       async function fetchChain() {
         const [blocksRes, integrityRes] = await Promise.all([
-          fetch("/blocks", { cache: "no-store" }),
-          fetch("/integrity", { cache: "no-store" }),
+          fetch("<%= basePath %>/blocks", { cache: "no-store" }),
+          fetch("<%= basePath %>/integrity", { cache: "no-store" }),
         ]);
         allBlocks = await blocksRes.json();
         const { isValid } = await integrityRes.json();
@@ -115,7 +115,9 @@
 
       async function fetchLeaderboard() {
         try {
-          const res = await fetch("/api/leaderboard", { cache: "no-store" });
+          const res = await fetch("<%= basePath %>/api/leaderboard", {
+            cache: "no-store",
+          });
           const leaderboard = await res.json();
           const list = document.getElementById("leaderboardList");
 

@@ -8,7 +8,7 @@
       name="description"
       content="Façonnez un monde fictif case par case. Chaque territoire que vous acquérez est inscrit pour toujours dans la blockchain."
     />
-    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="<%= basePath %>/css/style.css" />
   </head>
   <body>
     <%- include('partials/header') %>
@@ -50,7 +50,7 @@
             construit collectivement, bloc par bloc. Une fois posé, un terrain
             ne peut plus être modifié.
           </p>
-          <a href="/about" class="learn-more"
+          <a href="<%= basePath %>/about" class="learn-more"
             >En savoir plus sur la blockchain →</a
           >
         </div>
@@ -270,7 +270,9 @@
       // ─── Fetch données ────────────────────────────────────────────────────────
 
       async function fetchGrid() {
-        const res = await fetch("/gridstate", { cache: "no-store" });
+        const res = await fetch("<%= basePath %>/gridstate", {
+          cache: "no-store",
+        });
         gridData = await res.json();
         drawGrid(gridData);
 
@@ -374,7 +376,7 @@
         buyBtn.textContent = "Inscription en cours...";
 
         try {
-          const res = await fetch("/acquerir-case", {
+          const res = await fetch("<%= basePath %>/acquerir-case", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(data),
@@ -386,7 +388,6 @@
             caseSelection.classList.remove("active");
             coordText.textContent = "—";
             await fetchGrid();
-            await fetchLeaderboard();
             updateBuyBtn();
           } else {
             const errData = await res.json();
