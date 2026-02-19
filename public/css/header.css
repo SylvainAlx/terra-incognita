@@ -1,0 +1,64 @@
+.main-header {
+  background: var(--panel);
+  border-bottom: 1px solid var(--panel-border);
+  padding: 12px 24px;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  backdrop-filter: blur(12px);
+  width: 100%;
+  margin-bottom: 24px;
+}
+
+.header-inner {
+  max-width: 1440px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-emoji { font-size: 1.8rem; }
+.brand-name { 
+  font-family: 'Cinzel', serif; 
+  font-size: 1.1rem; 
+  color: var(--accent);
+  margin: 0;
+}
+.brand-tagline { font-size: 0.7rem; color: var(--muted); margin: 0; }
+
+.header-nav {
+  display: flex;
+  gap: 8px;
+}
+
+.nav-link {
+  text-decoration: none;
+  color: var(--text);
+  font-size: 0.85rem;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+}
+
+.nav-link:hover {
+  background: rgba(100, 168, 220, 0.1);
+  color: var(--accent);
+}
+
+.nav-link.active {
+  background: rgba(100, 168, 220, 0.15);
+  border-color: var(--accent);
+  color: var(--accent);
+}

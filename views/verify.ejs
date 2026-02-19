@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vérification | Registre Terroir</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>Vérification</h1>
+      <h2>Traçabilité Blockchain</h2>
+      <p class="description">Scannez ou saisissez le numéro de lot pour vérifier l'origine du produit.</p>
+
+      <form method="post" action="/verifier">
+        <div class="form-field">
+          <label for="batchNumber">Numéro de Lot (TR-...) :</label>
+          <input type="text" id="batchNumber" name="batchNumber" value="<%= typeof batchNumber !== 'undefined' ? batchNumber : '' %>" required />
+        </div>
+        <div class="form-field">
+          <input type="submit" value="Vérifier le Produit" />
+        </div>
+      </form>
+
+      <% if (isValid === true) { %>
+      <div class="result-box">
+        <div class="status-badge status-valid">✅ PRODUIT AUTHENTIQUE</div>
+        <p>Ce produit est enregistré dans notre registre immuable.</p>
+        
+        <div class="product-info">
+          <div class="info-row">
+            <span class="info-label">Produit :</span>
+            <span><%= block.data.product %></span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Producteur :</span>
+            <span><%= block.data.producer %></span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Origine :</span>
+            <span><%= block.data.origin %></span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Date :</span>
+            <span><%= block.timestamp %></span>
+          </div>
+        </div>
+      </div>
+      <% } else if (isValid === false) { %>
+      <div class="result-box" style="border-color: #ef4444; background: #fee2e2;">
+        <div class="status-badge status-invalid">❌ ALERTE CONTREFAÇON</div>
+        <p>Ce numéro de lot n'existe pas dans le registre officiel.</p>
+      </div>
+      <% } %>
+
+      <div class="links">
+        <a href="/">🏠 Retour à l'accueil</a>
+      </div>
+    </div>
+  </body>
+</html>

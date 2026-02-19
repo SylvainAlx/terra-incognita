@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Terra Incognita | Carte Blockchain Collaborative</title>
+    <meta
+      name="description"
+      content="Façonnez un monde fictif case par case. Chaque territoire que vous acquérez est inscrit pour toujours dans la blockchain."
+    />
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+  <body>
+    <%- include('partials/header') %>
+    <div class="layout">
+      <!-- Panneau gauche : Bandeau Info -->
+      <div class="leaderboard-card">
+        <div class="app-logo">
+          <span class="logo-icon">🌍</span>
+          <div>
+            <h2 class="app-title">Terra Incognita</h2>
+            <p class="app-sub">Explorez les terres inconnues</p>
+          </div>
+        </div>
+
+        <div class="legende">
+          <h3 class="section-title">Légende du monde</h3>
+          <div class="legende-item">
+            <span class="legende-dot" style="background: #8b6040"></span>
+            <span>Terre (Montagnes/Déserts)</span>
+          </div>
+          <div class="legende-item">
+            <span class="legende-dot" style="background: #6baadd"></span>
+            <span>Eau (Océans/Lacs)</span>
+          </div>
+          <div class="legende-item">
+            <span class="legende-dot" style="background: #4caf50"></span>
+            <span>Végétation (Forêts)</span>
+          </div>
+          <div class="legende-item">
+            <span class="legende-dot" style="background: #e53935"></span>
+            <span>Ville (Civilisation)</span>
+          </div>
+        </div>
+
+        <div class="mission-info">
+          <h3>📜 Votre Mission</h3>
+          <p>
+            Chaque case acquise est gravée dans la blockchain. Le monde se
+            construit collectivement, bloc par bloc. Une fois posé, un terrain
+            ne peut plus être modifié.
+          </p>
+          <a href="/about" class="learn-more"
+            >En savoir plus sur la blockchain →</a
+          >
+        </div>
+      </div>
+
+      <!-- Canvas central : la carte -->
+      <div class="canvas-container">
+        <div class="canvas-wrapper">
+          <canvas id="gridCanvas" width="300" height="300"></canvas>
+          <div id="tooltip" class="tooltip"></div>
+        </div>
+        <div class="canvas-footer">
+          <span id="casesCount" class="cases-count"
+            >0 / 10 000 cases acquises</span
+          >
+          <span class="canvas-hint"
+            >💡 Cliquez sur une case pour la sélectionner</span
+          >
+        </div>
+      </div>
+
+      <!-- Panneau droit : Contrôles -->
+      <div class="controls">
+        <div>
+          <h1>Façonnez le Monde</h1>
+          <p class="description">
+            Sélectionnez une case sur la carte, choisissez son terrain et
+            inscrivez votre acquisition dans la blockchain.
+          </p>
+        </div>
+
+        <div id="caseSelection" class="case-info">
+          📍 Case sélectionnée : <strong id="coordText">—</strong>
+        </div>
+
+        <div class="field">
+          <label>Préfixe de votre nom</label>
+          <input
+            type="text"
+            id="owner"
+            placeholder="Ex: Explorateur"
+            maxlength="15"
+            required
+          />
+          <p class="field-hint">
+            Un suffixe unique basé sur votre IP sera ajouté (ex:
+            Explorateur_12345)
+          </p>
+        </div>
+
+        <div class="field">
+          <label>Type de terrain</label>
+          <div class="terrain-grid">
+            <button
+              type="button"
+              class="terrain-btn"
+              id="btn-terre"
+              data-color="#8B6040"
+              data-terrain="Terre"
+            >
+              <span class="terrain-icon">🏔️</span>
+              <span class="terrain-label">Terre</span>
+            </button>
+            <button
+              type="button"
+              class="terrain-btn"
+              id="btn-eau"
+              data-color="#6BAADD"
+              data-terrain="Eau"
+            >
+              <span class="terrain-icon">💧</span>
+              <span class="terrain-label">Eau</span>
+            </button>
+            <button
+              type="button"
+              class="terrain-btn"
+              id="btn-vegetation"
+              data-color="#4CAF50"
+              data-terrain="Végétation"
+            >
+              <span class="terrain-icon">🌿</span>
+              <span class="terrain-label">Végétation</span>
+            </button>
+            <button
+              type="button"
+              class="terrain-btn"
+              id="btn-ville"
+              data-color="#E53935"
+              data-terrain="Ville"
+            >
+              <span class="terrain-icon">🏙️</span>
+              <span class="terrain-label">Ville</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Coordonnées (optionnel)</label>
+          <div class="coord-row">
+            <div class="coord-field">
+              <span class="coord-label">X</span>
+              <input type="number" id="posX" min="0" max="99" value="0" />
+            </div>
+            <div class="coord-field">
+              <span class="coord-label">Y</span>
+              <input type="number" id="posY" min="0" max="99" value="0" />
+            </div>
+          </div>
+        </div>
+
+        <button id="buyBtn" disabled>
+          Sélectionnez une case et un terrain
+        </button>
+
+        <div class="stats">
+          <div class="stat-item">
+            <span class="stat-label">Taille de la grille</span>
+            <span class="stat-value">100 × 100 cases</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Résolution d'une case</span>
+            <span class="stat-value">3 × 3 px</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const GRID_SIZE = 100; // 100x100 cases
+      const CELL_PX = 3; // chaque case = 3x3 pixels sur le canvas
+      const CANVAS_SIZE = GRID_SIZE * CELL_PX; // 300px
+
+      const COULEUR_DEFAUT = "#FFFFFF"; // blanc — inexploré
+      const COULEURS = {
+        "#8B6040": "Terre",
+        "#6BAADD": "Eau",
+        "#4CAF50": "Végétation",
+        "#E53935": "Ville",
+      };
+
+      const canvas = document.getElementById("gridCanvas");
+      const ctx = canvas.getContext("2d");
+      const posXInput = document.getElementById("posX");
+      const posYInput = document.getElementById("posY");
+      const caseSelection = document.getElementById("caseSelection");
+      const coordText = document.getElementById("coordText");
+      const buyBtn = document.getElementById("buyBtn");
+      const tooltip = document.getElementById("tooltip");
+
+      // Affichage CSS : on double la taille visuelle pour une meilleure lisibilité
+      canvas.style.width = `${CANVAS_SIZE * 2}px`;
+      canvas.style.height = `${CANVAS_SIZE * 2}px`;
+
+      let selectedColor = null;
+      let selectedTerrain = null;
+      let selectedX = null;
+      let selectedY = null;
+      let gridData = {};
+
+      // ─── Terrain buttons ──────────────────────────────────────────────────────
+
+      document.querySelectorAll(".terrain-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          document
+            .querySelectorAll(".terrain-btn")
+            .forEach((b) => b.classList.remove("active"));
+          btn.classList.add("active");
+          selectedColor = btn.dataset.color;
+          selectedTerrain = btn.dataset.terrain;
+          updateBuyBtn();
+        });
+      });
+
+      function updateBuyBtn() {
+        if (selectedX !== null && selectedColor !== null) {
+          buyBtn.disabled = false;
+          buyBtn.textContent = `Acquérir "${selectedTerrain}" en (${selectedX}, ${selectedY})`;
+        } else if (selectedX === null && selectedColor !== null) {
+          buyBtn.disabled = true;
+          buyBtn.textContent = "Sélectionnez une case sur la carte";
+        } else if (selectedX !== null && selectedColor === null) {
+          buyBtn.disabled = true;
+          buyBtn.textContent = "Choisissez un type de terrain";
+        } else {
+          buyBtn.disabled = true;
+          buyBtn.textContent = "Sélectionnez une case et un terrain";
+        }
+      }
+
+      // ─── Dessin de la grille ──────────────────────────────────────────────────
+
+      function drawGrid(grid) {
+        // Fond blanc (inexploré — brouillard de guerre)
+        ctx.fillStyle = COULEUR_DEFAUT;
+        ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+
+        // Dessiner les cases acquises
+        for (const key in grid) {
+          const [x, y] = key.split(",").map(Number);
+          ctx.fillStyle = grid[key].color;
+          ctx.fillRect(x * CELL_PX, y * CELL_PX, CELL_PX, CELL_PX);
+        }
+
+        // Surligner la case sélectionnée
+        if (selectedX !== null) {
+          ctx.strokeStyle = "#FFD700";
+          ctx.lineWidth = 0.5;
+          ctx.strokeRect(
+            selectedX * CELL_PX + 0.25,
+            selectedY * CELL_PX + 0.25,
+            CELL_PX - 0.5,
+            CELL_PX - 0.5,
+          );
+        }
+      }
+
+      // ─── Fetch données ────────────────────────────────────────────────────────
+
+      async function fetchGrid() {
+        const res = await fetch("/gridstate", { cache: "no-store" });
+        gridData = await res.json();
+        drawGrid(gridData);
+
+        const count = Object.keys(gridData).length;
+        document.getElementById("casesCount").textContent =
+          `${count} / 10 000 cases acquises`;
+      }
+
+      // ─── Interaction canvas ───────────────────────────────────────────────────
+
+      function getCanvasCoords(e) {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = CANVAS_SIZE / rect.width;
+        const scaleY = CANVAS_SIZE / rect.height;
+        const px = (e.clientX - rect.left) * scaleX;
+        const py = (e.clientY - rect.top) * scaleY;
+        return {
+          x: Math.floor(px / CELL_PX),
+          y: Math.floor(py / CELL_PX),
+        };
+      }
+
+      canvas.addEventListener("click", (e) => {
+        const { x, y } = getCanvasCoords(e);
+        if (x < 0 || x >= GRID_SIZE || y < 0 || y >= GRID_SIZE) return;
+
+        const key = `${x},${y}`;
+        if (gridData[key]) {
+          const data = gridData[key];
+          alert(
+            `Cette case appartient déjà à ${data.owner} (${COULEURS[data.color] || data.color}).`,
+          );
+          return;
+        }
+
+        selectedX = x;
+        selectedY = y;
+        posXInput.value = x;
+        posYInput.value = y;
+        coordText.textContent = `${x}, ${y}`;
+        caseSelection.classList.add("active");
+        drawGrid(gridData);
+        updateBuyBtn();
+      });
+
+      // Tooltip au survol
+      canvas.addEventListener("mousemove", (e) => {
+        const { x, y } = getCanvasCoords(e);
+        if (x < 0 || x >= GRID_SIZE || y < 0 || y >= GRID_SIZE) {
+          tooltip.style.display = "none";
+          return;
+        }
+
+        const key = `${x},${y}`;
+        const rect = canvas.getBoundingClientRect();
+        tooltip.style.left = `${e.clientX - rect.left + 10}px`;
+        tooltip.style.top = `${e.clientY - rect.top + 10}px`;
+        tooltip.style.display = "block";
+
+        if (gridData[key]) {
+          const data = gridData[key];
+          tooltip.innerHTML = `<strong>${COULEURS[data.color] || data.color}</strong><br>📍 (${x}, ${y})<br>👤 ${escHtml(data.owner)}`;
+        } else {
+          tooltip.innerHTML = `📍 (${x}, ${y})<br><em>Disponible</em>`;
+        }
+      });
+
+      canvas.addEventListener("mouseleave", () => {
+        tooltip.style.display = "none";
+      });
+
+      // Synchronisation des inputs manuels
+      [posXInput, posYInput].forEach((input) => {
+        input.addEventListener("change", () => {
+          const x = parseInt(posXInput.value);
+          const y = parseInt(posYInput.value);
+          if (x >= 0 && x < 100 && y >= 0 && y < 100) {
+            selectedX = x;
+            selectedY = y;
+            coordText.textContent = `${x}, ${y}`;
+            caseSelection.classList.add("active");
+            drawGrid(gridData);
+            updateBuyBtn();
+          }
+        });
+      });
+
+      // ─── Acquisition ──────────────────────────────────────────────────────────
+
+      buyBtn.addEventListener("click", async () => {
+        if (selectedX === null || selectedColor === null) return;
+
+        const data = {
+          x: selectedX,
+          y: selectedY,
+          color: selectedColor,
+          owner: document.getElementById("owner").value.trim() || "Anonyme",
+        };
+
+        buyBtn.disabled = true;
+        buyBtn.textContent = "Inscription en cours...";
+
+        try {
+          const res = await fetch("/acquerir-case", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+          });
+
+          if (res.ok) {
+            selectedX = null;
+            selectedY = null;
+            caseSelection.classList.remove("active");
+            coordText.textContent = "—";
+            await fetchGrid();
+            await fetchLeaderboard();
+            updateBuyBtn();
+          } else {
+            const errData = await res.json();
+            alert(errData.error || "Erreur lors de l'enregistrement.");
+            buyBtn.disabled = false;
+            updateBuyBtn();
+          }
+        } catch (err) {
+          console.error(err);
+          buyBtn.disabled = false;
+          updateBuyBtn();
+        }
+      });
+
+      // ─── Utilitaires ──────────────────────────────────────────────────────────
+
+      function escHtml(str) {
+        return String(str)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
+      }
+
+      // ─── Init ─────────────────────────────────────────────────────────────────
+
+      fetchGrid();
+      setInterval(() => {
+        fetchGrid();
+      }, 5000);
+    </script>
+    <%- include('partials/footer') %>
+  </body>
+</html>

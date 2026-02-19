@@ -1,0 +1,18 @@
+:root {
+  --bg: #0a1628;
+  --bg2: #0d1f3c;
+  --panel: #112240;
+  --panel-border: rgba(100, 160, 220, 0.15);
+  --accent: #64a8dc;
+  --accent2: #4fd1c5;
+  --text: #e2eaf4;
+  --muted: #7a9bc4;
+  --white: #ffffff;
+
+  /* Terrains */
+  --terre: #8b6040;
+  --eau: #6baadd;
+  --vegetation: #4caf50;
+  --ville: #e53935;
+  --ocean: #1a6ea8;
+}

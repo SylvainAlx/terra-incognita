@@ -1,0 +1,11 @@
+/* ─── Terra Incognita — Index des Styles ─────────────────────────────────── */
+
+@import "variables.css";
+@import "base.css";
+@import "layout.css";
+@import "header.css";
+@import "footer.css";
+@import "components.css";
+@import "game.css";
+@import "forms.css";
+@import "responsive.css";

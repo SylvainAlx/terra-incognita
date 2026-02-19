@@ -1,0 +1,137 @@
+.about-container {
+  max-width: 900px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 48px 32px;
+  background: var(--panel);
+  border-radius: 24px;
+  border: 1px solid var(--panel-border);
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.5);
+  animation: slideUp 0.6s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.about-header {
+  text-align: center;
+  margin-bottom: 56px;
+}
+
+.about-header h1 {
+  font-size: 2.8rem;
+  margin-bottom: 16px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.about-header p {
+  font-size: 1.1rem;
+  color: var(--muted);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.about-section {
+  margin-bottom: 48px;
+}
+
+.about-section h2 {
+  font-family: "Cinzel", serif;
+  color: var(--accent);
+  font-size: 1.6rem;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.about-section p {
+  font-size: 1.05rem;
+  color: var(--text);
+  line-height: 1.8;
+  margin-bottom: 20px;
+}
+
+.tech-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  margin-top: 32px;
+}
+
+.tech-card {
+  background: rgba(0, 0, 0, 0.25);
+  padding: 24px;
+  border-radius: 16px;
+  border: 1px solid var(--panel-border);
+  transition:
+    transform 0.3s ease,
+    border-color 0.3s ease;
+}
+
+.tech-card:hover {
+  transform: translateY(-5px);
+  border-color: var(--accent);
+}
+
+.tech-card .icon {
+  font-size: 2rem;
+  margin-bottom: 16px;
+  display: block;
+}
+
+.tech-card h3 {
+  color: var(--accent2);
+  font-size: 1.1rem;
+  margin-bottom: 12px;
+  font-family: "Inter", sans-serif;
+}
+
+.tech-card p {
+  font-size: 0.92rem;
+  color: var(--muted);
+  line-height: 1.6;
+  margin-bottom: 0;
+}
+
+.hash-example {
+  background: #050b14;
+  padding: 20px;
+  border-radius: 12px;
+  font-family: "Courier New", Courier, monospace;
+  font-size: 0.85rem;
+  color: var(--accent2);
+  border: 1px dashed var(--panel-border);
+  margin: 20px 0;
+  overflow-x: auto;
+}
+
+.hash-link {
+  color: var(--accent);
+  font-weight: bold;
+}
+
+.highlight {
+  color: var(--accent2);
+  font-weight: 600;
+}
+
+@media (max-width: 600px) {
+  .about-header h1 {
+    font-size: 2rem;
+  }
+  .about-container {
+    padding: 32px 20px;
+  }
+}

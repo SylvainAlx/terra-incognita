@@ -1,0 +1,13 @@
+/* ─── Terra Incognita — Index des Styles Explorateur ─────────────────────── */
+
+@import "explorer-base.css";
+@import "explorer-leaderboard.css";
+@import "explorer-blocks.css";
+@import "explorer-modal.css";
+
+/* Ajustements spécifiques finaux */
+@media (max-width: 700px) {
+  .hash-value {
+    max-width: 200px;
+  }
+}

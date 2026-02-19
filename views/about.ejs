@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>À Propos | Terra Incognita</title>
+    <meta
+      name="description"
+      content="Découvrez comment fonctionne la blockchain simplifiée de Terra Incognita."
+    />
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/about.css" />
+  </head>
+  <body>
+    <%- include('partials/header') %>
+
+    <div class="about-container">
+      <header class="about-header">
+        <h1>L'Essence de la Blockchain</h1>
+        <p>
+          Comprendre comment Terra Incognita utilise la technologie pour
+          garantir l'immutabilité d'un monde construit par ses utilisateurs.
+        </p>
+      </header>
+
+      <section class="about-section">
+        <h2><span class="icon">🏗️</span> Une Architecture Simplifiée</h2>
+        <p>
+          Contrairement aux blockchains classiques, Terra Incognita ne repose
+          sur
+          <span class="highlight">aucun système de minage</span>,
+          <span class="highlight">aucune cryptomonnaie</span> et
+          <span class="highlight">aucun réseau de validateurs distribués</span>.
+        </p>
+        <p>
+          C'est une expérience pédagogique et artistique qui utilise la
+          structure fondamentale d'une blockchain pour ce qu'elle est à la base
+          : une
+          <span class="highlight"
+            >chaîne de données liée par la cryptographie</span
+          >.
+        </p>
+
+        <div class="tech-grid">
+          <div class="tech-card">
+            <span class="icon">🚫</span>
+            <h3>Pas de Crypto</h3>
+            <p>
+              Ici, rien n'a de valeur monétaire. L'acquisition d'une case est
+              gratuite et symbolique.
+            </p>
+          </div>
+          <div class="tech-card">
+            <span class="icon">🍃</span>
+            <h3>Zéro Énergie</h3>
+            <p>
+              Pas de Proof-of-Work énergivore. L'enregistrement est instantané
+              et léger pour l'environnement.
+            </p>
+          </div>
+          <div class="tech-card">
+            <span class="icon">⚖️</span>
+            <h3>Intégrité Centrale</h3>
+            <p>
+              La règle est simple : une fois qu'une donnée est inscrite, elle
+              devient un maillon indestructible de la chaîne.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="about-section">
+        <h2><span class="icon">🔗</span> Le Pouvoir du Hash</h2>
+        <p>
+          Le secret de l'intégrité réside dans le
+          <span class="highlight">Hashage</span>. Chaque bloc de la carte
+          contient l'empreinte numérique (le Hash) du bloc précédent.
+        </p>
+        <p>
+          Si quelqu'un tentait de modifier une case du passé, l'empreinte de ce
+          bloc changerait. Comme ce Hash est utilisé pour calculer celui du bloc
+          suivant, toute la chaîne deviendrait invalide instantanément.
+        </p>
+
+        <div class="hash-example">
+          Bloc #42 [Données: Ville en 12,45]<br />
+          Hash Précédent: <span class="hash-link">8a2f...3c91</span><br />
+          Hash Actuel: <span class="highlight">b7e1...f0a2</span><br />
+          -----------------------------------<br />
+          Bloc #43 [Données: Terre en 12,46]<br />
+          Hash Précédent: <span class="hash-link">b7e1...f0a2</span>
+          <small>(Hérité du Bloc #42)</small><br />
+          Hash Actuel: <span class="highlight">d4c8...e91b</span>
+        </div>
+      </section>
+
+      <section class="about-section">
+        <h2><span class="icon">🌍</span> Pourquoi cette approche ?</h2>
+        <p>
+          Terra Incognita démontre que la technologie blockchain est avant tout
+          un
+          <span class="highlight">registre de confiance</span>.
+        </p>
+        <p>
+          Elle permet de créer un historique d'actions collaboratives où l'ordre
+          des événements et le contenu des décisions sont gravés dans le marbre
+          numérique. C'est la mémoire collective de notre monde fictif, protégée
+          par les mathématiques plutôt que par des lois.
+        </p>
+      </section>
+    </div>
+
+    <%- include('partials/footer') %>
+  </body>
+</html>

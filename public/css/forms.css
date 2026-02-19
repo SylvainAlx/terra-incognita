@@ -1,0 +1,209 @@
+h1 {
+  font-family: 'Cinzel', serif;
+  font-size: 1.3rem;
+  color: var(--accent);
+  margin-bottom: 4px;
+  line-height: 1.3;
+}
+
+.description {
+  font-size: 0.82rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.field-hint {
+  font-size: 0.7rem;
+  color: var(--muted);
+  font-style: italic;
+  margin-top: -2px;
+  line-height: 1.4;
+}
+
+input[type="text"],
+input[type="number"] {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--panel-border);
+  padding: 11px 14px;
+  border-radius: 10px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.95rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(100, 168, 220, 0.15);
+}
+
+/* Terrain buttons grid */
+.terrain-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.terrain-btn {
+  background: rgba(0, 0, 0, 0.25);
+  border: 2px solid var(--panel-border);
+  border-radius: 12px;
+  padding: 14px 8px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  color: var(--text);
+  font-family: inherit;
+  margin-top: 0;
+}
+
+.terrain-btn:hover {
+  border-color: rgba(100, 168, 220, 0.4);
+  background: rgba(100, 168, 220, 0.08);
+  transform: translateY(-1px);
+  box-shadow: none;
+}
+
+.terrain-btn.active {
+  border-color: var(--accent);
+  background: rgba(100, 168, 220, 0.15);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.terrain-btn[data-color="#8B6040"].active  { border-color: var(--terre); box-shadow: 0 0 0 1px var(--terre); background: rgba(139, 96, 64, 0.15); }
+.terrain-btn[data-color="#6BAADD"].active  { border-color: var(--eau); box-shadow: 0 0 0 1px var(--eau); background: rgba(107, 170, 221, 0.15); }
+.terrain-btn[data-color="#4CAF50"].active  { border-color: var(--vegetation); box-shadow: 0 0 0 1px var(--vegetation); background: rgba(76, 175, 80, 0.15); }
+.terrain-btn[data-color="#E53935"].active  { border-color: var(--ville); box-shadow: 0 0 0 1px var(--ville); background: rgba(229, 57, 53, 0.15); }
+
+.terrain-icon {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.terrain-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+
+/* Coordonnées */
+.coord-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.coord-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  padding: 2px 12px;
+  transition: border-color 0.2s;
+}
+
+.coord-field:focus-within {
+  border-color: var(--accent);
+}
+
+.coord-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.coord-field input {
+  background: transparent;
+  border: none;
+  padding: 10px 0;
+  box-shadow: none;
+  width: 100%;
+}
+
+.coord-field input:focus {
+  border: none;
+  box-shadow: none;
+}
+
+/* Case info */
+.case-info {
+  background: rgba(100, 168, 220, 0.08);
+  padding: 11px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--accent);
+  font-size: 0.85rem;
+  display: none;
+  animation: fadeIn 0.3s ease;
+}
+
+.case-info.active {
+  display: block;
+}
+
+/* Bouton principal */
+#buyBtn {
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: var(--bg);
+  border: none;
+  padding: 14px 20px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 4px;
+  font-family: inherit;
+  letter-spacing: 0.02em;
+}
+
+#buyBtn:not(:disabled):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(100, 168, 220, 0.35);
+}
+
+#buyBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Stats */
+.stats {
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid var(--panel-border);
+}
+
+.stat-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  margin-bottom: 6px;
+}
+
+.stat-label { color: var(--muted); }
+.stat-value { color: var(--accent); font-weight: 600; }

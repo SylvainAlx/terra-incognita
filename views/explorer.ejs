@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Explorateur Blockchain | Terra Incognita</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/explorer.css" />
+  </head>
+  <body class="explorer-body">
+    <%- include('partials/header') %>
+
+    <main class="explorer-main">
+      <!-- Section Classement -->
+      <section class="leaderboard-section">
+        <div class="section-header">
+          <span class="section-icon">🏆</span>
+          <h2>Top 10 Explorateurs</h2>
+        </div>
+        <div id="leaderboardList" class="explorer-leaderboard">
+          <p class="muted">Chargement du classement...</p>
+        </div>
+      </section>
+
+      <!-- Légende pédagogique -->
+      <section class="pedagogy-banner">
+        <div class="pedagogy-item">
+          <span class="ped-icon">🔑</span>
+          <div>
+            <strong>Hash</strong>
+            <p>
+              Empreinte numérique unique calculée à partir du contenu du bloc.
+              Toute modification le ferait changer.
+            </p>
+          </div>
+        </div>
+        <div class="pedagogy-item">
+          <span class="ped-icon">🔗</span>
+          <div>
+            <strong>Hash précédent</strong>
+            <p>
+              Chaque bloc contient l'empreinte du bloc précédent, formant une
+              chaîne inviolable.
+            </p>
+          </div>
+        </div>
+        <div class="pedagogy-item">
+          <span class="ped-icon">🛡️</span>
+          <div>
+            <strong>Immutabilité</strong>
+            <p>
+              Modifier un bloc invalide tous les suivants, rendant toute
+              falsification détectable immédiatement.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <div class="explorer-meta-row">
+        <div class="meta-badge" id="totalBlocks">— blocs</div>
+        <div class="meta-badge valid" id="integrityBadge">Vérification…</div>
+      </div>
+
+      <!-- Filtres -->
+      <div class="explorer-toolbar">
+        <div class="search-box">
+          <span>🔍</span>
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="Rechercher un explorateur, un hash, des coordonnées…"
+          />
+        </div>
+        <div class="toolbar-right">
+          <span class="block-count-label" id="blockCountLabel"
+            >Chargement…</span
+          >
+          <button id="refreshBtn" class="refresh-btn">↺ Actualiser</button>
+        </div>
+      </div>
+
+      <!-- Chaîne de blocs -->
+      <div id="chainContainer" class="chain-container">
+        <div class="loading-chain">
+          <div class="loading-spinner"></div>
+          <p>Chargement de la blockchain…</p>
+        </div>
+      </div>
+    </main>
+
+    <!-- Modal de détail -->
+    <div id="blockModal" class="modal-overlay" aria-hidden="true">
+      <div class="modal-card">
+        <button class="modal-close" id="modalClose">✕</button>
+        <div id="modalContent"></div>
+      </div>
+    </div>
+
+    <script>
+      let allBlocks = [];
+
+      // ─── Fetch & render ───────────────────────────────────────────────────────
+
+      async function fetchChain() {
+        const [blocksRes, integrityRes] = await Promise.all([
+          fetch("/blocks", { cache: "no-store" }),
+          fetch("/integrity", { cache: "no-store" }),
+        ]);
+        allBlocks = await blocksRes.json();
+        const { isValid } = await integrityRes.json();
+
+        updateStats(allBlocks.length, isValid);
+        renderChain(allBlocks);
+      }
+
+      async function fetchLeaderboard() {
+        try {
+          const res = await fetch("/api/leaderboard", { cache: "no-store" });
+          const leaderboard = await res.json();
+          const list = document.getElementById("leaderboardList");
+
+          if (leaderboard.length === 0) {
+            list.innerHTML =
+              '<p class="muted">Aucune case acquise pour le moment.</p>';
+            return;
+          }
+
+          list.innerHTML = leaderboard
+            .map(
+              (item, index) => `
+              <div class="leaderboard-card-item">
+                <span class="leaderboard-rank">#${index + 1}</span>
+                <span class="leaderboard-name">${escHtml(item.name)}</span>
+                <span class="leaderboard-count">${item.count} case${item.count > 1 ? "s" : ""}</span>
+              </div>
+            `,
+            )
+            .join("");
+        } catch (err) {
+          console.error("Erreur classement:", err);
+        }
+      }
+
+      function updateStats(count, isValid) {
+        document.getElementById("totalBlocks").textContent =
+          `${count} bloc${count > 1 ? "s" : ""}`;
+        const badge = document.getElementById("integrityBadge");
+        badge.textContent = isValid
+          ? "✅ Chaîne valide"
+          : "❌ Chaîne corrompue";
+        badge.className = "meta-badge " + (isValid ? "valid" : "invalid");
+      }
+
+      function renderChain(blocks) {
+        const container = document.getElementById("chainContainer");
+        container.innerHTML = "";
+
+        if (blocks.length === 0) {
+          container.innerHTML = '<p class="empty-chain">Aucun bloc trouvé.</p>';
+          return;
+        }
+
+        // Rendre en ordre inverse (le plus récent en haut) mais garder le genesis en dernier
+        const orderedBlocks = [...blocks].reverse();
+
+        orderedBlocks.forEach((block, idx) => {
+          const isGenesis = block.index === 0;
+          const isLatest = block.index === blocks.length - 1;
+          const isPixel = typeof block.data === "object" && block.data !== null;
+
+          // Carte du bloc
+          const card = document.createElement("div");
+          card.className = `block-card ${isGenesis ? "genesis" : ""} ${isLatest ? "latest" : ""}`;
+          card.dataset.index = block.index;
+
+          // Couleur de l'en-tête selon type
+          const headerColor = isGenesis
+            ? "genesis-header"
+            : isPixel
+              ? `pixel-header`
+              : "default-header";
+
+          const pixelSwatch = isPixel
+            ? `<span class="pixel-swatch" style="background:${block.data.color}"></span>`
+            : "";
+
+          card.innerHTML = `
+            <div class="block-header ${headerColor}">
+              <div class="block-index">
+                ${isGenesis ? "🌐 Bloc Genesis" : `${isLatest ? "🆕 " : ""}Bloc #${block.index}`}
+              </div>
+              <div class="block-badges">
+                ${pixelSwatch}
+                ${isLatest ? '<span class="badge-latest">DERNIER</span>' : ""}
+              </div>
+            </div>
+
+            <div class="block-body">
+              <div class="block-timestamp">🕐 ${block.timestamp}</div>
+
+              ${
+                isPixel
+                  ? `
+                <div class="block-data pixel-data">
+                <div class="data-row">
+                  <span class="data-label">Explorateur</span>
+                  <span class="data-value owner-value">${escHtml(block.data.owner)}</span>
+                </div>
+                <div class="data-row">
+                  <span class="data-label">Coordonnées</span>
+                  <span class="data-value">X: ${block.data.x}, Y: ${block.data.y}</span>
+                </div>
+                <div class="data-row">
+                  <span class="data-label">Terrain</span>
+                  <span class="data-value">
+                    <span class="color-pill" style="background:${block.data.color}"></span>
+                    ${block.data.terrain || block.data.color}
+                  </span>
+                </div>
+              </div>
+              `
+                  : `
+              <div class="block-data genesis-data">
+                <span class="genesis-label">📜 ${escHtml(String(block.data))}</span>
+              </div>
+              `
+              }
+
+              <div class="hash-section">
+                <div class="hash-row">
+                  <span class="hash-label">🔑 Hash</span>
+                  <code class="hash-value current-hash" title="${block.hash}">${block.hash}</code>
+                </div>
+                <div class="hash-row">
+                  <span class="hash-label">🔗 Hash préc.</span>
+                  <code class="hash-value prev-hash ${block.previousHash === "0" ? "zero-hash" : ""}" title="${block.previousHash}">
+                    ${block.previousHash === "0" ? "0000… (Origine)" : block.previousHash}
+                  </code>
+                </div>
+              </div>
+
+              <button class="detail-btn" data-index="${block.index}">Voir le détail complet →</button>
+            </div>
+          `;
+
+          container.appendChild(card);
+
+          // Flèche de liaison (sauf après le genesis)
+          if (idx < orderedBlocks.length - 1) {
+            const arrow = document.createElement("div");
+            arrow.className = "chain-arrow";
+            arrow.innerHTML = `
+              <div class="arrow-line"></div>
+              <div class="arrow-label">
+                <span class="arrow-hash" title="${block.previousHash}">${block.hash.slice(0, 12)}…</span>
+                <span class="arrow-text">⬆ référencé par</span>
+              </div>
+              <div class="arrow-line"></div>
+            `;
+            container.appendChild(arrow);
+          }
+        });
+
+        // Labels du total
+        const visibleCount = blocks.length;
+        document.getElementById("blockCountLabel").textContent =
+          `${visibleCount} bloc${visibleCount > 1 ? "s" : ""} dans la chaîne`;
+
+        // Boutons de détail
+        container.querySelectorAll(".detail-btn").forEach((btn) => {
+          btn.addEventListener("click", () =>
+            openModal(parseInt(btn.dataset.index)),
+          );
+        });
+      }
+
+      // ─── Recherche ────────────────────────────────────────────────────────────
+
+      document
+        .getElementById("searchInput")
+        .addEventListener("input", function () {
+          const q = this.value.toLowerCase().trim();
+          if (!q) {
+            renderChain(allBlocks);
+            return;
+          }
+
+          const filtered = allBlocks.filter((b) => {
+            if (b.index === 0) return String(b.data).toLowerCase().includes(q);
+            return (
+              String(b.index).includes(q) ||
+              b.hash.toLowerCase().includes(q) ||
+              b.previousHash.toLowerCase().includes(q) ||
+              b.timestamp.toLowerCase().includes(q) ||
+              (b.data.owner && b.data.owner.toLowerCase().includes(q)) ||
+              (b.data.color && b.data.color.toLowerCase().includes(q)) ||
+              (b.data.x !== undefined && String(b.data.x).includes(q)) ||
+              (b.data.y !== undefined && String(b.data.y).includes(q))
+            );
+          });
+
+          renderChain(filtered);
+          document.getElementById("blockCountLabel").textContent =
+            `${filtered.length} résultat${filtered.length > 1 ? "s" : ""} (sur ${allBlocks.length} blocs)`;
+        });
+
+      // ─── Modal ────────────────────────────────────────────────────────────────
+
+      function openModal(index) {
+        const block = allBlocks.find((b) => b.index === index);
+        if (!block) return;
+
+        const isPixel = typeof block.data === "object" && block.data !== null;
+
+        document.getElementById("modalContent").innerHTML = `
+          <h2 class="modal-title">${block.index === 0 ? "🌐 Bloc Genesis" : `🧱 Bloc #${block.index}`}</h2>
+          <p class="modal-timestamp">📅 Enregistré le ${block.timestamp}</p>
+
+          <div class="modal-section">
+            <h3>Données</h3>
+            ${
+              isPixel
+                ? `
+            <table class="modal-table">
+              <tr><td>Explorateur</td><td><strong>${escHtml(block.data.owner)}</strong></td></tr>
+              <tr><td>Case X</td><td>${block.data.x}</td></tr>
+              <tr><td>Case Y</td><td>${block.data.y}</td></tr>
+              <tr><td>Terrain</td>
+                  <td>
+                    <span class="color-pill" style="background:${block.data.color}"></span>
+                    ${block.data.terrain || block.data.color}
+                  </td>
+              </tr>
+            </table>
+            `
+                : `<p class="genesis-label-modal">📜 ${escHtml(String(block.data))}</p>`
+            }
+          </div>
+
+          <div class="modal-section">
+            <h3>🔑 Hash (empreinte du bloc)</h3>
+            <p class="modal-explain">Ce hash est calculé à partir de <em>toutes</em> les données du bloc. Le moindre changement produirait un hash totalement différent.</p>
+            <code class="full-hash">${block.hash}</code>
+          </div>
+
+          <div class="modal-section">
+            <h3>🔗 Hash précédent</h3>
+            <p class="modal-explain">En stockant l'empreinte du bloc précédent, chaque bloc <em>scelle</em> l'historique de toute la chaîne avant lui.</p>
+            <code class="full-hash ${block.previousHash === "0" ? "zero-hash" : ""}">${block.previousHash}</code>
+          </div>
+
+          <div class="modal-section">
+            <h3>📐 Formule de hachage</h3>
+            <code class="formula-code">SHA256( index + previousHash + timestamp + JSON(data) )</code>
+          </div>
+        `;
+
+        const modal = document.getElementById("blockModal");
+        modal.setAttribute("aria-hidden", "false");
+        modal.classList.add("visible");
+      }
+
+      document
+        .getElementById("modalClose")
+        .addEventListener("click", closeModal);
+      document
+        .getElementById("blockModal")
+        .addEventListener("click", function (e) {
+          if (e.target === this) closeModal();
+        });
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeModal();
+      });
+
+      function closeModal() {
+        const modal = document.getElementById("blockModal");
+        modal.setAttribute("aria-hidden", "true");
+        modal.classList.remove("visible");
+      }
+
+      // ─── Utilitaires ──────────────────────────────────────────────────────────
+
+      function escHtml(str) {
+        return str
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
+      }
+
+      document
+        .getElementById("refreshBtn")
+        .addEventListener("click", fetchChain);
+
+      // Init
+      fetchChain();
+      fetchLeaderboard();
+    </script>
+    <%- include('partials/footer') %>
+  </body>
+</html>

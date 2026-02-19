@@ -1,0 +1,9 @@
+.layout {
+  display: grid;
+  grid-template-columns: 260px 1fr 340px;
+  gap: 20px;
+  max-width: 1440px;
+  width: 100%;
+  padding: 0 24px 24px 24px;
+  flex-grow: 1;
+}

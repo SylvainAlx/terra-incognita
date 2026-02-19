@@ -1,0 +1,31 @@
+<header class="main-header">
+  <div class="header-inner">
+    <div class="header-brand">
+      <span class="brand-emoji">🗺️</span>
+      <div>
+        <h1 class="brand-name">Terra Incognita</h1>
+        <p class="brand-tagline">Carte collaborative basée sur la blockchain</p>
+      </div>
+    </div>
+    <nav class="header-nav">
+      <a
+        href="/"
+        class="nav-link <%= typeof page !== 'undefined' && page === 'home' ? 'active' : '' %>"
+      >
+        <span class="nav-icon">🗺️</span> Carte
+      </a>
+      <a
+        href="/explorer"
+        class="nav-link <%= typeof page !== 'undefined' && page === 'explorer' ? 'active' : '' %>"
+      >
+        <span class="nav-icon">⛓️</span> Explorateur
+      </a>
+      <a
+        href="/about"
+        class="nav-link <%= typeof page !== 'undefined' && page === 'about' ? 'active' : '' %>"
+      >
+        <span class="nav-icon">❓</span> À propos
+      </a>
+    </nav>
+  </div>
+</header>
