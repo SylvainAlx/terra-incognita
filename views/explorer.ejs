@@ -98,76 +98,62 @@
 
     <script>
       let allBlocks = [];
+      let displayedBlocks = [];
+      let currentIndex = 0;
+      const PAGE_SIZE = 20;
+      let observer = null;
 
       // ─── Fetch & render ───────────────────────────────────────────────────────
 
       async function fetchChain() {
-        const [blocksRes, integrityRes] = await Promise.all([
-          fetch("<%= basePath %>/blocks", { cache: "no-store" }),
-          fetch("<%= basePath %>/integrity", { cache: "no-store" }),
-        ]);
-        allBlocks = await blocksRes.json();
-        const { isValid } = await integrityRes.json();
-
-        updateStats(allBlocks.length, isValid);
-        renderChain(allBlocks);
-      }
-
-      async function fetchLeaderboard() {
         try {
-          const res = await fetch("<%= basePath %>/api/leaderboard", {
-            cache: "no-store",
-          });
-          const leaderboard = await res.json();
-          const list = document.getElementById("leaderboardList");
+          const [blocksRes, integrityRes] = await Promise.all([
+            fetch("<%= basePath %>/blocks", { cache: "no-store" }),
+            fetch("<%= basePath %>/integrity", { cache: "no-store" }),
+          ]);
+          allBlocks = await blocksRes.json();
+          const { isValid } = await integrityRes.json();
 
-          if (leaderboard.length === 0) {
-            list.innerHTML =
-              '<p class="muted">Aucune case acquise pour le moment.</p>';
-            return;
-          }
-
-          list.innerHTML = leaderboard
-            .map(
-              (item, index) => `
-              <div class="leaderboard-card-item">
-                <span class="leaderboard-rank">#${index + 1}</span>
-                <span class="leaderboard-name">${escHtml(item.name)}</span>
-                <span class="leaderboard-count">${item.count} case${item.count > 1 ? "s" : ""}</span>
-              </div>
-            `,
-            )
-            .join("");
+          updateStats(allBlocks.length, isValid);
+          resetAndRender(allBlocks);
         } catch (err) {
-          console.error("Erreur classement:", err);
+          console.error("Erreur chargement chaine:", err);
+          document.getElementById("chainContainer").innerHTML =
+            '<p class="empty-chain">Erreur lors du chargement des blocs.</p>';
         }
       }
 
-      function updateStats(count, isValid) {
-        document.getElementById("totalBlocks").textContent =
-          `${count} bloc${count > 1 ? "s" : ""}`;
-        const badge = document.getElementById("integrityBadge");
-        badge.textContent = isValid
-          ? "✅ Chaîne valide"
-          : "❌ Chaîne corrompue";
-        badge.className = "meta-badge " + (isValid ? "valid" : "invalid");
-      }
-
-      function renderChain(blocks) {
+      function resetAndRender(blocks) {
+        displayedBlocks = [...blocks].reverse();
+        currentIndex = 0;
         const container = document.getElementById("chainContainer");
         container.innerHTML = "";
 
-        if (blocks.length === 0) {
+        if (displayedBlocks.length === 0) {
           container.innerHTML = '<p class="empty-chain">Aucun bloc trouvé.</p>';
+          document.getElementById("blockCountLabel").textContent = "0 bloc";
           return;
         }
 
-        // Rendre en ordre inverse (le plus récent en haut) mais garder le genesis en dernier
-        const orderedBlocks = [...blocks].reverse();
+        renderNextChunk();
+        setupIntersectionObserver();
+      }
 
-        orderedBlocks.forEach((block, idx) => {
+      function renderNextChunk() {
+        const container = document.getElementById("chainContainer");
+        const nextChunk = displayedBlocks.slice(
+          currentIndex,
+          currentIndex + PAGE_SIZE,
+        );
+
+        if (nextChunk.length === 0) return;
+
+        const fragment = document.createDocumentFragment();
+
+        nextChunk.forEach((block, idx) => {
+          const absoluteIdx = currentIndex + idx;
           const isGenesis = block.index === 0;
-          const isLatest = block.index === blocks.length - 1;
+          const isLatest = block.index === allBlocks.length - 1;
           const isPixel = typeof block.data === "object" && block.data !== null;
 
           // Carte du bloc
@@ -175,7 +161,6 @@
           card.className = `block-card ${isGenesis ? "genesis" : ""} ${isLatest ? "latest" : ""}`;
           card.dataset.index = block.index;
 
-          // Couleur de l'en-tête selon type
           const headerColor = isGenesis
             ? "genesis-header"
             : isPixel
@@ -245,10 +230,16 @@
             </div>
           `;
 
-          container.appendChild(card);
+          // Ajouter un écouteur au bouton de détail
+          card.querySelector(".detail-btn").addEventListener("click", () => {
+            openModal(block.index);
+          });
 
-          // Flèche de liaison (sauf après le genesis)
-          if (idx < orderedBlocks.length - 1) {
+          fragment.appendChild(card);
+
+          // Flèche de liaison (sauf si c'est le dernier bloc affiché ET que c'est le genesis)
+          const isReallyLast = absoluteIdx === displayedBlocks.length - 1;
+          if (!isReallyLast) {
             const arrow = document.createElement("div");
             arrow.className = "chain-arrow";
             arrow.innerHTML = `
@@ -259,21 +250,105 @@
               </div>
               <div class="arrow-line"></div>
             `;
-            container.appendChild(arrow);
+            fragment.appendChild(arrow);
           }
         });
 
-        // Labels du total
-        const visibleCount = blocks.length;
-        document.getElementById("blockCountLabel").textContent =
-          `${visibleCount} bloc${visibleCount > 1 ? "s" : ""} dans la chaîne`;
+        container.appendChild(fragment);
+        currentIndex += nextChunk.length;
 
-        // Boutons de détail
-        container.querySelectorAll(".detail-btn").forEach((btn) => {
-          btn.addEventListener("click", () =>
-            openModal(parseInt(btn.dataset.index)),
-          );
-        });
+        // Mettre à jour le label
+        updateCountLabel();
+      }
+
+      function updateCountLabel() {
+        const total = allBlocks.length;
+        const showing = displayedBlocks.length;
+        let text = `${showing} bloc${showing > 1 ? "s" : ""} dans la chaîne`;
+
+        if (showing !== total) {
+          text = `${showing} résultat${showing > 1 ? "s" : ""} (sur ${total} blocs)`;
+        }
+
+        document.getElementById("blockCountLabel").textContent = text;
+
+        // Masquer le sentinel si tout est affiché
+        const sentinel = document.getElementById("loadMoreSentinel");
+        if (sentinel) {
+          if (currentIndex >= displayedBlocks.length) {
+            sentinel.style.display = "none";
+          } else {
+            sentinel.style.display = "flex";
+          }
+        }
+      }
+
+      function setupIntersectionObserver() {
+        if (observer) observer.disconnect();
+
+        // On crée un sentinel s'il n'existe pas
+        let sentinel = document.getElementById("loadMoreSentinel");
+        if (!sentinel) {
+          sentinel = document.createElement("div");
+          sentinel.id = "loadMoreSentinel";
+          sentinel.className = "load-more-sentinel";
+          sentinel.innerHTML = "<span>Chargement des blocs suivants...</span>";
+          document.querySelector(".explorer-main").appendChild(sentinel);
+        }
+
+        observer = new IntersectionObserver(
+          (entries) => {
+            if (
+              entries[0].isIntersecting &&
+              currentIndex < displayedBlocks.length
+            ) {
+              renderNextChunk();
+            }
+          },
+          { rootMargin: "200px" },
+        );
+
+        observer.observe(sentinel);
+      }
+
+      async function fetchLeaderboard() {
+        try {
+          const res = await fetch("<%= basePath %>/api/leaderboard", {
+            cache: "no-store",
+          });
+          const leaderboard = await res.json();
+          const list = document.getElementById("leaderboardList");
+
+          if (leaderboard.length === 0) {
+            list.innerHTML =
+              '<p class="muted">Aucune case acquise pour le moment.</p>';
+            return;
+          }
+
+          list.innerHTML = leaderboard
+            .map(
+              (item, index) => `
+              <div class="leaderboard-card-item">
+                <span class="leaderboard-rank">#${index + 1}</span>
+                <span class="leaderboard-name">${escHtml(item.name)}</span>
+                <span class="leaderboard-count">${item.count} case${item.count > 1 ? "s" : ""}</span>
+              </div>
+            `,
+            )
+            .join("");
+        } catch (err) {
+          console.error("Erreur classement:", err);
+        }
+      }
+
+      function updateStats(count, isValid) {
+        document.getElementById("totalBlocks").textContent =
+          `${count} bloc${count > 1 ? "s" : ""}`;
+        const badge = document.getElementById("integrityBadge");
+        badge.textContent = isValid
+          ? "✅ Chaîne valide"
+          : "❌ Chaîne corrompue";
+        badge.className = "meta-badge " + (isValid ? "valid" : "invalid");
       }
 
       // ─── Recherche ────────────────────────────────────────────────────────────
@@ -283,7 +358,7 @@
         .addEventListener("input", function () {
           const q = this.value.toLowerCase().trim();
           if (!q) {
-            renderChain(allBlocks);
+            resetAndRender(allBlocks);
             return;
           }
 
@@ -301,9 +376,7 @@
             );
           });
 
-          renderChain(filtered);
-          document.getElementById("blockCountLabel").textContent =
-            `${filtered.length} résultat${filtered.length > 1 ? "s" : ""} (sur ${allBlocks.length} blocs)`;
+          resetAndRender(filtered);
         });
 
       // ─── Modal ────────────────────────────────────────────────────────────────

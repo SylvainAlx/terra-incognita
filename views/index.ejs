@@ -86,18 +86,23 @@
           📍 Case sélectionnée : <strong id="coordText">—</strong>
         </div>
 
-        <div class="field">
-          <label>Préfixe de votre nom</label>
-          <input
-            type="text"
-            id="owner"
-            placeholder="Ex: Explorateur"
-            maxlength="15"
-            required
-          />
+        <div class="field identity-box">
+          <label>Votre Identité Blockchain</label>
+          <div class="wallet-info">
+            <span class="wallet-icon">🆔</span>
+            <span id="walletAddress" class="wallet-address">Chargement...</span>
+          </div>
+          <div class="wallet-actions">
+            <button type="button" id="exportIdentity" class="action-btn-small">
+              💾 Exporter
+            </button>
+            <button type="button" id="importIdentity" class="action-btn-small">
+              📥 Importer
+            </button>
+          </div>
           <p class="field-hint">
-            Un suffixe unique basé sur votre IP sera ajouté (ex:
-            Explorateur_12345)
+            Votre identifiant unique est généré localement. Il garantit votre
+            anonymat tout en prouvant la propriété de vos cases.
           </p>
         </div>
 
@@ -178,6 +183,7 @@
       </div>
     </div>
 
+    <script src="<%= basePath %>/js/identity.js"></script>
     <script>
       const GRID_SIZE = 100; // 100x100 cases
       const CELL_PX = 3; // chaque case = 3x3 pixels sur le canvas
@@ -200,15 +206,63 @@
       const buyBtn = document.getElementById("buyBtn");
       const tooltip = document.getElementById("tooltip");
 
-      // Affichage CSS : on double la taille visuelle pour une meilleure lisibilité
-      canvas.style.width = `${CANVAS_SIZE * 2}px`;
-      canvas.style.height = `${CANVAS_SIZE * 2}px`;
+      // L'affichage est géré par le CSS et synchronisé avec CANVAS_SIZE
+      const canvasWrapper = document.querySelector(".canvas-wrapper");
+      if (canvasWrapper) canvasWrapper.style.maxWidth = `${CANVAS_SIZE * 2}px`;
 
       let selectedColor = null;
       let selectedTerrain = null;
       let selectedX = null;
       let selectedY = null;
       let gridData = {};
+
+      // ─── Initialisation Identité ──────────────────────────────────────────────
+      async function initIdentity() {
+        await window.identity.init();
+        const walletDisplay = document.getElementById("walletAddress");
+        if (walletDisplay) {
+          walletDisplay.textContent = window.identity.address;
+        }
+
+        // Gestion de l'export
+        document
+          .getElementById("exportIdentity")
+          .addEventListener("click", async () => {
+            const data = await window.identity.exportIdentity();
+            const blob = new Blob([data], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `terra-incognita-identity-${window.identity.address}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+          });
+
+        // Gestion de l'import
+        document
+          .getElementById("importIdentity")
+          .addEventListener("click", async () => {
+            const input = document.createElement("input");
+            input.type = "file";
+            input.accept = ".json";
+            input.onchange = async (e) => {
+              const file = e.target.files[0];
+              const reader = new FileReader();
+              reader.onload = async (re) => {
+                try {
+                  await window.identity.importIdentity(re.target.result);
+                  walletDisplay.textContent = window.identity.address;
+                  alert("Identité importée avec succès !");
+                  location.reload(); // Recharger pour rafraîchir tout l'état
+                } catch (err) {
+                  alert("Fichier d'identité invalide.");
+                }
+              };
+              reader.readAsText(file);
+            };
+            input.click();
+          });
+      }
 
       // ─── Terrain buttons ──────────────────────────────────────────────────────
 
@@ -227,7 +281,7 @@
       function updateBuyBtn() {
         if (selectedX !== null && selectedColor !== null) {
           buyBtn.disabled = false;
-          buyBtn.textContent = `Acquérir "${selectedTerrain}" en (${selectedX}, ${selectedY})`;
+          buyBtn.textContent = `Signer & Acquérir "${selectedTerrain}"`;
         } else if (selectedX === null && selectedColor !== null) {
           buyBtn.disabled = true;
           buyBtn.textContent = "Sélectionnez une case sur la carte";
@@ -277,8 +331,10 @@
         drawGrid(gridData);
 
         const count = Object.keys(gridData).length;
-        document.getElementById("casesCount").textContent =
-          `${count} / 10 000 cases acquises`;
+        const countEl = document.getElementById("casesCount");
+        if (countEl) {
+          countEl.textContent = `${count} / 10 000 cases acquises`;
+        }
       }
 
       // ─── Interaction canvas ───────────────────────────────────────────────────
@@ -365,21 +421,33 @@
       buyBtn.addEventListener("click", async () => {
         if (selectedX === null || selectedColor === null) return;
 
-        const data = {
+        // On prépare les données à signer
+        const payload = {
           x: selectedX,
           y: selectedY,
           color: selectedColor,
-          owner: document.getElementById("owner").value.trim() || "Anonyme",
         };
 
         buyBtn.disabled = true;
-        buyBtn.textContent = "Inscription en cours...";
+        buyBtn.textContent = "Signature cryptographique...";
 
         try {
+          // 1. Signature du message
+          const message = JSON.stringify(payload);
+          const signature = await window.identity.signMessage(message);
+          const publicKey = await window.identity.getPublicKeyBase64();
+
+          buyBtn.textContent = "Inscription blockchain...";
+
+          // 2. Envoi avec la preuve d'identité
           const res = await fetch("<%= basePath %>/acquerir-case", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data),
+            body: JSON.stringify({
+              ...payload,
+              signature,
+              publicKey,
+            }),
           });
 
           if (res.ok) {
@@ -397,6 +465,7 @@
           }
         } catch (err) {
           console.error(err);
+          alert("Erreur lors de la signature ou de l'envoi.");
           buyBtn.disabled = false;
           updateBuyBtn();
         }
@@ -413,6 +482,7 @@
 
       // ─── Init ─────────────────────────────────────────────────────────────────
 
+      initIdentity();
       fetchGrid();
       setInterval(() => {
         fetchGrid();

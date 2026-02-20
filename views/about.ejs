@@ -24,62 +24,94 @@
       </header>
 
       <section class="about-section">
-        <h2><span class="icon">🏗️</span> Une Architecture Simplifiée</h2>
+        <h2><span class="icon">🏗️</span> Une Architecture de Confiance</h2>
         <p>
           Contrairement aux blockchains classiques, Terra Incognita ne repose
           sur
-          <span class="highlight">aucun système de minage</span>,
-          <span class="highlight">aucune cryptomonnaie</span> et
-          <span class="highlight">aucun réseau de validateurs distribués</span>.
+          <span class="highlight">aucun système de minage</span> et
+          <span class="highlight">aucune cryptomonnaie</span>.
         </p>
         <p>
-          C'est une expérience pédagogique et artistique qui utilise la
-          structure fondamentale d'une blockchain pour ce qu'elle est à la base
-          : une
-          <span class="highlight"
-            >chaîne de données liée par la cryptographie</span
-          >.
+          C'est une expérience pédagogique qui utilise les deux piliers
+          fondamentaux de la blockchain :
+          <span class="highlight">l'immutabilité</span> (via le chaînage par
+          hash) et
+          <span class="highlight">l'identité cryptographique</span> (via la
+          signature numérique).
         </p>
 
         <div class="tech-grid">
           <div class="tech-card">
-            <span class="icon">🚫</span>
-            <h3>Pas de Crypto</h3>
+            <span class="icon">🆔</span>
+            <h3>Identité Cryptographique</h3>
             <p>
-              Ici, rien n'a de valeur monétaire. L'acquisition d'une case est
-              gratuite et symbolique.
+              Votre identité n'est pas liée à votre IP ou un compte, mais à une
+              clé cryptographique unique générée par votre navigateur.
             </p>
           </div>
           <div class="tech-card">
-            <span class="icon">🍃</span>
-            <h3>Zéro Énergie</h3>
+            <span class="icon">✍️</span>
+            <h3>Preuve de Propriété</h3>
             <p>
-              Pas de Proof-of-Work énergivore. L'enregistrement est instantané
-              et léger pour l'environnement.
+              Chaque acquisition est signée numériquement. Seul le possesseur de
+              votre "clé" peut prouver qu'il est l'auteur d'une case.
             </p>
           </div>
           <div class="tech-card">
             <span class="icon">⚖️</span>
-            <h3>Intégrité Centrale</h3>
+            <h3>Transparence Totale</h3>
             <p>
-              La règle est simple : une fois qu'une donnée est inscrite, elle
-              devient un maillon indestructible de la chaîne.
+              Une fois qu'une case est inscrite et signée, elle devient un
+              maillon indestructible de la mémoire collective du monde.
             </p>
           </div>
         </div>
       </section>
 
       <section class="about-section">
+        <h2><span class="icon">🔐</span> Anonymat & Signature</h2>
+        <p>
+          Pour garantir que personne ne puisse usurper l'identité d'un autre
+          colon, nous utilisons le standard **ECDSA** (Elliptic Curve Digital
+          Signature Algorithm).
+        </p>
+        <div class="concept-box">
+          <p><strong>Comment ça marche ?</strong></p>
+          <ol>
+            <li>
+              <strong>Clé Privée :</strong> Elle reste dans votre navigateur.
+              C'est votre "stylo" numérique secret.
+            </li>
+            <li>
+              <strong>Clé Publique (Wallet) :</strong> C'est votre adresse
+              visible par tous.
+            </li>
+            <li>
+              <strong>Signature :</strong> Pour chaque case, votre navigateur
+              crée une preuve mathématique unique. Le serveur vérifie cette
+              preuve sans jamais connaître votre secret.
+            </li>
+          </ol>
+        </div>
+        <p>
+          Cette approche combine **anonymat total** et **sécurité
+          cryptographique**. Même sans réseau de pairs, la cryptographie
+          garantit que seul le possesseur de l'identité originale peut agir en
+          son nom.
+        </p>
+      </section>
+
+      <section class="about-section">
         <h2><span class="icon">🔗</span> Le Pouvoir du Hash</h2>
         <p>
           Le secret de l'intégrité réside dans le
-          <span class="highlight">Hashage</span>. Chaque bloc de la carte
-          contient l'empreinte numérique (le Hash) du bloc précédent.
+          <span class="highlight">Hashage</span> (SHA-256). Chaque bloc contient
+          l'empreinte numérique du bloc précédent.
         </p>
         <p>
-          Si quelqu'un tentait de modifier une case du passé, l'empreinte de ce
-          bloc changerait. Comme ce Hash est utilisé pour calculer celui du bloc
-          suivant, toute la chaîne deviendrait invalide instantanément.
+          Si quelqu'un tentait de modifier une case du passé, l'empreinte
+          changerait et toute la chaîne deviendrait invalide instantanément.
+          C'est ce qui rend la blockchain "immuable".
         </p>
 
         <div class="hash-example">
@@ -99,13 +131,12 @@
         <p>
           Terra Incognita démontre que la technologie blockchain est avant tout
           un
-          <span class="highlight">registre de confiance</span>.
+          <span class="highlight">registre de confiance transparent</span>.
         </p>
         <p>
-          Elle permet de créer un historique d'actions collaboratives où l'ordre
-          des événements et le contenu des décisions sont gravés dans le marbre
-          numérique. C'est la mémoire collective de notre monde fictif, protégée
-          par les mathématiques plutôt que par des lois.
+          Ici, les mathématiques remplacent les modérateurs. Le monde appartient
+          à ceux qui le construisent, et chaque action est gravée pour
+          l'éternité dans le marbre numérique, protégée par la cryptographie.
         </p>
       </section>
     </div>

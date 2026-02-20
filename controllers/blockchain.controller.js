@@ -31,31 +31,19 @@ export const getIntegrity = (req, res) => {
   res.json({ isValid: blockchain.isChainValid() });
 };
 
-export const acquerirCase = (req, res) => {
+export const acquerirCase = async (req, res) => {
   const { blockchain } = req.app.locals;
-  const { x, y, color, owner: prefix } = req.body;
+  const { x, y, color, signature, publicKey } = req.body;
 
-  const ip = req.ip || "127.0.0.1";
-  const suffix = getIpSuffix(ip);
-  const owner = `${prefix.trim() || "Explorateur"}_${suffix}`;
-
-  console.log(
-    `🔍 Acquisition par IP: ${ip} (Normalisée -> suffixe: ${suffix})`,
-  );
-
+  // 1. Validation de base des entrées
   const ix = parseInt(x);
   const iy = parseInt(y);
-
-  // Validation des coordonnées (grille 100x100)
   if (isNaN(ix) || isNaN(iy) || ix < 0 || ix >= 100 || iy < 0 || iy >= 100) {
     return res.status(400).json({ error: "Coordonnées invalides (0-99)" });
   }
 
-  // Validation de la couleur
   if (!COULEURS_VALIDES[color]) {
-    return res.status(400).json({
-      error: `Couleur invalide. Choix possibles : ${Object.keys(COULEURS_VALIDES).join(", ")}`,
-    });
+    return res.status(400).json({ error: "Couleur invalide." });
   }
 
   if (blockchain.isCaseOwned(ix, iy)) {
@@ -64,21 +52,67 @@ export const acquerirCase = (req, res) => {
       .json({ error: "Cette case appartient déjà à quelqu'un !" });
   }
 
-  const newBlock = new Block(
-    blockchain.chain.length,
-    new Date().toLocaleString("fr-FR"),
-    {
-      x: ix,
-      y: iy,
-      color: color,
-      terrain: COULEURS_VALIDES[color],
-      owner: owner || "Anonyme",
-    },
-  );
+  // 2. Vérification cryptographique
+  if (!signature || !publicKey) {
+    return res
+      .status(401)
+      .json({ error: "Signature ou clé publique manquante." });
+  }
 
-  blockchain.addBlock(newBlock);
-  console.log(
-    `🗺️  Nouvelle case acquise: (${ix}, ${iy}) [${COULEURS_VALIDES[color]}] par ${owner}`,
-  );
-  res.json({ success: true, block: newBlock });
+  try {
+    // Reconstitution du message qui a été signé côté client
+    const message = JSON.stringify({ x: ix, y: iy, color });
+
+    // Import de la clé publique
+    const pubKeyBuffer = Buffer.from(publicKey, "base64");
+    const cryptoKey = await crypto.webcrypto.subtle.importKey(
+      "spki",
+      pubKeyBuffer,
+      { name: "ECDSA", namedCurve: "P-256" },
+      true,
+      ["verify"],
+    );
+
+    // Vérification de la signature
+    const sigBuffer = Buffer.from(signature, "base64");
+    const isValid = await crypto.webcrypto.subtle.verify(
+      { name: "ECDSA", hash: { name: "SHA-256" } },
+      cryptoKey,
+      sigBuffer,
+      new TextEncoder().encode(message),
+    );
+
+    if (!isValid) {
+      return res.status(401).json({
+        error: "Signature invalide ! Tentative d'usurpation détectée.",
+      });
+    }
+
+    // 3. Dérivation de l'adresse (identifiant court pour le leaderboard)
+    const hash = crypto.createHash("sha256").update(pubKeyBuffer).digest("hex");
+    const address = "0x" + hash.substring(0, 10).toUpperCase();
+    const owner = address;
+
+    // 4. Ajout à la blockchain
+    const newBlock = new Block(
+      blockchain.chain.length,
+      new Date().toLocaleString("fr-FR"),
+      {
+        x: ix,
+        y: iy,
+        color: color,
+        terrain: COULEURS_VALIDES[color],
+        owner: owner,
+      },
+    );
+
+    blockchain.addBlock(newBlock);
+    console.log(`🔐 Case acquise anonymement par ${address}: (${ix}, ${iy})`);
+    res.json({ success: true, block: newBlock });
+  } catch (err) {
+    console.error("Erreur de vérification cryto:", err);
+    res
+      .status(500)
+      .json({ error: "Erreur lors de la vérification de l'identité." });
+  }
 };

@@ -7,7 +7,14 @@
         <p class="brand-tagline">Carte collaborative basée sur la blockchain</p>
       </div>
     </div>
-    <nav class="header-nav">
+
+    <button class="menu-toggle" id="menuToggle" aria-label="Ouvrir le menu">
+      <span class="bar"></span>
+      <span class="bar"></span>
+      <span class="bar"></span>
+    </button>
+
+    <nav class="header-nav" id="headerNav">
       <a
         href="<%= basePath %>/"
         class="nav-link <%= typeof page !== 'undefined' && page === 'home' ? 'active' : '' %>"
@@ -29,3 +36,35 @@
     </nav>
   </div>
 </header>
+<div class="nav-overlay" id="navOverlay"></div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const toggle = document.getElementById("menuToggle");
+    const nav = document.getElementById("headerNav");
+    const overlay = document.getElementById("navOverlay");
+
+    const toggleMenu = () => {
+      toggle.classList.toggle("active");
+      nav.classList.toggle("active");
+      overlay.classList.toggle("active");
+      document.body.style.overflow = nav.classList.contains("active")
+        ? "hidden"
+        : "";
+    };
+
+    if (toggle && nav && overlay) {
+      toggle.addEventListener("click", toggleMenu);
+      overlay.addEventListener("click", toggleMenu);
+
+      nav.querySelectorAll(".nav-link").forEach((link) => {
+        link.addEventListener("click", () => {
+          toggle.classList.remove("active");
+          nav.classList.remove("active");
+          overlay.classList.remove("active");
+          document.body.style.overflow = "";
+        });
+      });
+    }
+  });
+</script>
